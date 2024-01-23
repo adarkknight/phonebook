@@ -55,13 +55,15 @@ app.get("/api/persons", (request, response) => {
 });
 
 app.get("/api/persons/:id", (request, response) => {
-  const id = Number(request.params.id);
-  const person = numbers.find((number) => number.id === id);
-  if (person) {
-    response.json(person);
-  } else {
-    response.status(404).send("No person found with that id").end();
-  }
+  Person.findById(request.params.id, { __v: 0 })
+    .then((person) => {
+      if (person) {
+        response.json(person);
+      } else {
+        response.status(404).end();
+      }
+    })
+    .catch((error) => next(error));
 });
 
 app.post("/api/persons", (request, response) => {
@@ -104,10 +106,12 @@ app.put("/api/persons/:id", (request, response, next) => {
 });
 
 app.get("/info", (request, response) => {
-  response.send(
-    `<p>Phonebook has info for ${numbers.length} people</p>
-         <p>${new Date()}</p>`
-  );
+  Person.find({}, { __v: 0 }).then((people) => {
+    response.send(
+      `<p>Phonebook has info for ${people.length} people</p>
+           <p>${new Date()}</p>`
+    );
+  });
 });
 
 app.use(errorHandler);
