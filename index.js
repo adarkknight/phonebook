@@ -4,6 +4,17 @@ const app = express();
 const morgan = require("morgan");
 const cors = require("cors");
 const Person = require("./models/person");
+
+const errorHandler = (error, request, response, next) => {
+  console.error(error.message);
+
+  if (error.name === "CastError") {
+    return response.status(400).send({ error: "malformatted id" });
+  }
+
+  next(error);
+};
+
 app.use(cors());
 app.use(express.static("dist"));
 app.use(express.json());
@@ -14,6 +25,7 @@ morgan.token("body", function (req, res) {
 app.use(
   morgan(":method :url :status :res[content-length] - :response-time ms :body")
 );
+
 let numbers = [
   {
     id: 1,
@@ -61,16 +73,16 @@ app.post("/api/persons", (request, response) => {
     });
   }
 
-  // const personExists = Person.find({ name: body.name });
-  // console.log("this is personExists", personExists);
-  // if (personExists) {
-  //   return response
-  //     .status(400)
-  //     .json({
-  //       error: "name must be unique",
-  //     })
-  //     .end();
-  // }
+  const personExists = Person.find({ name: body.name });
+
+  if (personExists) {
+    return response
+      .status(400)
+      .json({
+        error: "name must be unique",
+      })
+      .end();
+  }
   const number = new Person({
     name: body.name,
     number: body.number,
@@ -80,12 +92,12 @@ app.post("/api/persons", (request, response) => {
   });
 });
 
-app.delete("/api/persons/:id", (request, response) => {
+app.delete("/api/persons/:id", (request, response, next) => {
   Person.findByIdAndDelete(request.params.id)
     .then((result) => {
       response.status(204).end();
     })
-    .catch((error) => console.log(error));
+    .catch((error) => next(error));
 });
 
 app.get("/info", (request, response) => {
@@ -94,7 +106,7 @@ app.get("/info", (request, response) => {
          <p>${new Date()}</p>`
   );
 });
-
+app.use(errorHandler);
 const PORT = process.env.PORT || 3001;
 app.listen(PORT);
 console.log(`Server running on port ${PORT}`);
