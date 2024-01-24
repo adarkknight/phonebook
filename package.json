@@ -5,6 +5,8 @@
   "scripts": {
     "start": "node index.js",
     "dev": "nodemon index.js",
+    "lint": "eslint .",
+    "lintfix": "eslint --fix .",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "author": "Chris Brock",
@@ -17,6 +19,7 @@
     "morgan": "^1.10.0"
   },
   "devDependencies": {
+    "eslint": "^8.56.0",
     "nodemon": "^3.0.3"
   },
   "description": ""
